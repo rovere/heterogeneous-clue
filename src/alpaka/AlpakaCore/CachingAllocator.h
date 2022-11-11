@@ -143,7 +143,7 @@ namespace cms::alpakatools {
     ~CachingAllocator() {
       {
         // this should never be called while some memory blocks are still live
-        std::scoped_lock lock(mutex_);
+        std::scoped_lock lock{mutex_};
         assert(liveBlocks_.empty());
         assert(cachedBytes_.live == 0);
       }
@@ -153,7 +153,7 @@ namespace cms::alpakatools {
 
     // return a copy of the cache allocation status, for monitoring purposes
     CachedBytes cacheStatus() const {
-      std::scoped_lock lock(mutex_);
+      std::scoped_lock lock{mutex_};
       return cachedBytes_;
     }
 
@@ -175,7 +175,7 @@ namespace cms::alpakatools {
 
     // frees an allocation
     void free(void* ptr) {
-      std::scoped_lock lock(mutex_);
+      std::scoped_lock lock{mutex_};
 
       auto iBlock = liveBlocks_.find(ptr);
       if (iBlock == liveBlocks_.end()) {
@@ -270,7 +270,7 @@ namespace cms::alpakatools {
     }
 
     bool tryReuseCachedBlock(BlockDescriptor& block) {
-      std::scoped_lock lock(mutex_);
+      std::scoped_lock lock{mutex_};
 
       // iterate through the range of cached blocks in the same bin
       const auto [begin, end] = cachedBlocks_.equal_range(block.bin);
@@ -354,7 +354,7 @@ namespace cms::alpakatools {
       block.event = Event{block.device()};
 
       {
-        std::scoped_lock lock(mutex_);
+        std::scoped_lock lock{mutex_};
         cachedBytes_.live += block.bytes;
         cachedBytes_.requested += block.requested;
         // TODO use std::move() ?
@@ -371,7 +371,7 @@ namespace cms::alpakatools {
     }
 
     void freeAllCached() {
-      std::scoped_lock lock(mutex_);
+      std::scoped_lock lock{mutex_};
 
       while (not cachedBlocks_.empty()) {
         auto iBlock = cachedBlocks_.begin();
